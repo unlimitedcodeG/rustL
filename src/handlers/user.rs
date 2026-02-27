@@ -1,29 +1,40 @@
 use salvo::prelude::*;
+use salvo::oapi::ToSchema;
+use salvo::oapi::extract::PathParam;
+use serde::Serialize;
 
-#[handler]
-pub async fn list_users(res: &mut Response) {
-    res.render(Text::Json("[]"));
+#[derive(Serialize, ToSchema)]
+struct MessageBody {
+    message: String,
 }
 
-#[handler]
-pub async fn create_user(_req: &mut Request, res: &mut Response) {
-    res.render(Text::Json(r#"{"message":"user created"}"#));
+#[derive(Serialize, ToSchema)]
+struct UserBody {
+    id: String,
 }
 
-#[handler]
-pub async fn get_user(req: &mut Request, res: &mut Response) {
-    let id = match req.param::<String>("id") {
-        Some(value) => value,
-        None => String::new(),
-    };
-    res.render(Text::Json(format!(r#"{{"id":"{}"}}"#, id)));
+#[endpoint]
+pub async fn list_users() -> Json<Vec<String>> {
+    Json(Vec::new())
 }
 
-#[handler]
-pub async fn delete_user(req: &mut Request, res: &mut Response) {
-    let id = match req.param::<String>("id") {
-        Some(value) => value,
-        None => String::new(),
-    };
-    res.render(Text::Json(format!(r#"{{"message":"user {} deleted"}}"#, id)));
+#[endpoint]
+pub async fn create_user() -> Json<MessageBody> {
+    Json(MessageBody {
+        message: "user created".to_owned(),
+    })
+}
+
+#[endpoint]
+pub async fn get_user(id: PathParam<String>) -> Json<UserBody> {
+    Json(UserBody {
+        id: id.into_inner(),
+    })
+}
+
+#[endpoint]
+pub async fn delete_user(id: PathParam<String>) -> Json<MessageBody> {
+    Json(MessageBody {
+        message: format!("user {} deleted", id.into_inner()),
+    })
 }
